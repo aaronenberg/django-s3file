@@ -151,6 +151,40 @@ entire form.
         })
     })()
 
+
+Using S3File in development
+---------------------------
+
+Using S3File in development can be helpful especially if you want to use the progress
+signals described above. Therefore, S3File comes with a AWS S3 dummy backend.
+It behaves similar to the real S3 storage backend.
+
+Simply add the following lines to your settings
+
+.. code:: python
+
+    if DEBUG:
+        DEFAULT_FILE_STORAGE = 's3file.storages.DummyS3Boto3Storage'
+    else:
+        DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+and include the dummy API endpoint in your URL root config.
+
+.. code::
+
+    from django.conf import settings
+
+    if settings.DEBUG:
+        urlpatterns += [
+            path('_s3_mock/', include('s3file.urls'))
+        ]
+
+In the example above, we use the ``DEBUG`` setting to make sure the dummy backend is not
+used in a production environment. There is also an additional deployment check that will
+error if you run Django's deployment check suite::
+
+    python manage.py check --deploy
+
 Uploading multiple files
 ------------------------
 
