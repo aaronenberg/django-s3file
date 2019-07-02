@@ -168,6 +168,19 @@ class TestS3FileInput:
         assert 'save_continue' in driver.page_source
         assert 'continue_value' in driver.page_source
 
+    def test_directory_insert(self, request, driver, live_server, upload_directory, freeze):
+        driver.get(live_server + reverse('upload_directory'))
+        file_input = driver.find_element_by_xpath('//input[@name=\'file\']')
+        file_input.send_keys(upload_directory)
+        assert file_input.get_attribute('name') == 'file'
+        with wait_for_page_load(driver, timeout=10):
+            file_input.submit()
+        assert storage.exists('tmp/%s/%s.txt' % (os.path.basename(upload_directory), request.node.name))
+
+        with pytest.raises(NoSuchElementException):
+            error = driver.find_element_by_xpath('//body[@JSError]')
+            pytest.fail(error.get_attribute('JSError'))
+
     def test_progress(self, driver, live_server, upload_file, freeze):
         driver.get(live_server + self.url)
         file_input = driver.find_element_by_xpath('//input[@name=\'file\']')

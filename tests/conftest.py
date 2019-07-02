@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 
 import pytest
@@ -12,6 +13,8 @@ from selenium.common.exceptions import WebDriverException
 def driver():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.headless = True
+    if sys.platform.startswith('linux') and os.path.exists('/usr/bin/chromium'):
+        chrome_options.binary_location = '/usr/bin/chromium'
     try:
         b = webdriver.Chrome(options=chrome_options)
     except WebDriverException as e:
@@ -19,6 +22,15 @@ def driver():
     else:
         yield b
         b.quit()
+
+
+@pytest.fixture
+def upload_directory(request):
+    path = tempfile.mkdtemp()
+    file_name = os.path.join(path, '%s.txt' % request.node.name)
+    with open(file_name, 'w') as f:
+        f.write(request.node.name)
+    return path
 
 
 @pytest.fixture
